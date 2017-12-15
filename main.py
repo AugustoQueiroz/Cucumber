@@ -60,6 +60,7 @@ class ServerSocket(Socket):
 class ClientSocket(Socket):
 	# Especifico do socket cliente, mensagens que ainda não receberam ack
 	waitingack = []
+	timer = None
 
 	# Função de Estabelescimento de Conexão
 	def establishconnection (self, host, port):
@@ -92,6 +93,9 @@ class ClientSocket(Socket):
 		self.next_id += 1
 		self.sock.sendto("%d||%s" % (self.next_id, message), self.peer)
 		self.waitingack.append((self.next_id, message))
+		if not self.timer:
+			self.timer = threading.Timer(1, self.resend)
+			self.timer.start()
 
 	# Checa se recebeu um ack
 	def checkack (self):
@@ -106,6 +110,10 @@ class ClientSocket(Socket):
 			for i, message in enumerate(self.waitingack):
 				if message[0] <= mid:
 					del self.waitingack[i]
+
+			if not self.waitingack:
+				# Se todas as mensagens tiverem recebido seus respectivos acks, cancela o timer
+				self.timer.cancel()
 
 	# Reenvia as mensagens que ainda não receberam ack
 	def resend (self):
