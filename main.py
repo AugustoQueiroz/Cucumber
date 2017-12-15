@@ -118,7 +118,7 @@ class ClientSocket(Socket):
 	# Reenvia as mensagens que ainda não receberam ack
 	def resend (self):
 		for message in self.waitingack:
-			self.sock.sendto(message, self.peer)
+			self.sock.sendto("%d||%s" % (message[0], message[1]), self.peer)
 
 
 class Peer:
