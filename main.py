@@ -22,12 +22,11 @@ class Socket:
 		# Define a próxima mensagem a ser enviada/recebida
 		self.next_id = 0
 
+
+class ServerSocket(Socket):
 	# Envia com o id da próxima mensagem esperada
 	def sendack (self):
 		self.sock.sendto("%d||ack" % (self.next_id), self.peer)
-
-
-class ServerSocket(Socket):
 
 	# Recebe a mensagem, Responde com o ack, e repassa a mensagem para o par se for a esperada
 	def receiveandrespond (self):
@@ -143,13 +142,11 @@ class Peer:
 			sys.stdout.write("Não foi possível criar o socket de cliente.\nProvavelmente a porta requerida (%d) já está em uso.\n" % (self.port))
 			exit(1)
 
-		# Variável de controle que diz se esse par deve ser desligado
-		self.shutdown = False
-
 	# Thread responsável pela parte "servidor"
 	def serverside (self):
 		self.serversocket.sock.setblocking(0)
 
+		# Estabelecimento de Conexão
 		while not self.serversocket.connected:
 			try:
 				message = self.serversocket.receiveandrespond()
@@ -181,6 +178,7 @@ class Peer:
 				self.clientsocket.checkack()
 			except KeyboardInterrupt:
 				self.clientsocket.connected = False
+				self.serversocket.connected = False
 				continue
 			except:
 				# Se não tinha nenhum ack recebido, pega le outra mensagem para ser enviada
